@@ -1,29 +1,41 @@
 package com.cognizant.myProject.model;
 
-import java.util.Random;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-import lombok.AllArgsConstructor;
 
 @Entity
 
 public class User {
 	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
 	@Column(name = "first_name")
 	private String firstName;
 	
 	@Column(name = "last_name")
+	
 	private String lastName;
 	
 	private int age;
 	private String gender;
 	private String email;
 	
+	public User(int id, String firstName, String lastName, int age, String gender, String email) {
+		super();
+		this.id = id;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.age = age;
+		this.gender = gender;
+		this.email = email;
+		
+	}
+
 	public int getAge() {
 		return age;
 	}
@@ -70,24 +82,13 @@ public class User {
 		this.email = email;
 	}
 
-	public User(int id, String firstName, String lastName, int age, String gender, String email) {
-		super();
-		this.id = id;
-		this.firstName = firstName;
-		this.lastName = lastName;
-		this.age = age;
-		this.gender = gender;
-		this.email = email;
-	}
+	
 
 	public User() {
 	
 		super();
-		Random rand = new Random();
-		int resRandom = rand.nextInt((9999 - 100) + 1) + 10;
-		this.id = resRandom;
 	}
-	
+
 	
 
 }

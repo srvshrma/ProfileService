@@ -2,6 +2,7 @@ package com.cognizant.myProject.controller;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cognizant.myProject.client.FeignClient;
+import com.cognizant.myProject.dto.UserAddress;
+import com.cognizant.myProject.exception.ExceptionMessage;
 import com.cognizant.myProject.exception.ProfileNotFoundException;
 import com.cognizant.myProject.model.Address;
 import com.cognizant.myProject.model.User;
@@ -30,18 +33,29 @@ public class UserController {
 	FeignClient feign;
 	Logger logger = LoggerFactory.getLogger(UserController.class);
 	
-	@PostMapping("/user/create")
-	public User createUser(@RequestBody User user) throws ProfileNotFoundException
+	@PostMapping(value="/user/create",produces = "application/json")
+	public User createUser(@RequestBody User user) throws ProfileNotFoundException, InterruptedException, ExecutionException
 	{
-		/*Login login = new Login(user.getUserId(), user.getEmail(), user.getPassword());
-		userService.createLogin(login);*/
+		
 		logger.error("Error...............................");
 		return userService.createUser(user);
 	}
 	
 	@GetMapping("/user/id/{id}")
-	public Optional<User> getUserById(@PathVariable(value="id") int id) throws ProfileNotFoundException {
-		return userService.findById(id);
+	public Optional<UserAddress> getUserById(@PathVariable(value="id") int id) throws ProfileNotFoundException, InterruptedException, ExecutionException {
+		logger.info("Finding user by id");
+		UserAddress user= new UserAddress();
+		User us = userService.findById(id).get();
+		user.setAddress(getAddressById(id));
+		user.setId(us.getId());
+		user.setFirstName(us.getFirstName());
+		user.setLastName(us.getLastName());
+		user.setEmail(us.getEmail());
+		user.setAge(us.getAge());
+		user.setGender(us.getGender());
+		//if(!user.isPresent()) throw new ProfileNotFoundException(ExceptionMessage.EMPTY.getMessage()+id);
+		//logger.error("Cannot find...............");
+		return Optional.of(user);
 	}
 	@GetMapping("/users")
 	public Iterable<User> getAll() throws ProfileNotFoundException{
@@ -49,9 +63,10 @@ public class UserController {
 		return userService.getAllUsers();
 	}
 	@GetMapping("/user/name/{name}")
-	public List<User> getByName(@PathVariable String name){
-		
-		return userService.getByName(name);
+	public List<User> getByName(@PathVariable String name) throws ProfileNotFoundException{
+		List<User> movie = userService.getByName(name);
+		if(!movie.isEmpty()) throw new ProfileNotFoundException(ExceptionMessage.User_FirstName_Not_Found.getMessage() +name);
+		return movie;
 	}
 	@PutMapping("/updateuser/{id}")
 	public void updateById(@RequestBody User user,@PathVariable int id) {
@@ -63,15 +78,12 @@ public class UserController {
 		userService.deleteProfileById(id);
 	}
 	
-	@PostMapping("/address/create")
-	public Address createAddress(@RequestBody Address address) {
-		return feign.createAddress(address);
-	}
-	
 	@RequestMapping("/address/id/{id}")
 	public Optional<Address> getAddressById(@PathVariable(value="id")int id){
 		
 		return feign.getAddressById(id);
 	}
+	
+	
 	
 }
